@@ -11,7 +11,6 @@ app = Flask(__name__)
 api = Api(app)
 
 main_dir = './store/'
-temporary_save = os.path.join(main_dir, 'temporary') # путь для временного сохранения файла
 
 
 def hashing_file(path, block_size=4096): # Размер кластера по умолчанию для NTFS = 4KB
@@ -52,14 +51,17 @@ parser.add_argument('filehash')
 class Upload(Resource):
     def post(self):
         args = parser.parse_args()
-        with tempfile.NamedTemporaryFile() as file:
-            file.write(args['file'])
+#        with tempfile.NamedTemporaryFile() as file:
+        with tempfile.TemporaryDirectory(dir = main_dir) as dirname: # временная директория, удаляется со всем содержимым 
+            temporary_save = os.path.join(dirname, 'temporary') # путь для временного сохранения файла
+            args['file'].save(temporary_save)
             
-            filehash = hashing_file(file.name)
+            filehash = hashing_file(temporary_save)
             path = main_dir + filehash[0:2] #получаем новый путь. подпапка из перых двух символов хэша  
         
             abort_if_file_exist(path, filehash)
-            os.renames(file.name, os.path.join(path, filehash)) #меняем имя и путь к файлу 
+            
+            os.renames(temporary_save, os.path.join(path, filehash)) #меняем имя и путь к файлу 
         return {'filehash': filehash}, 201
 
 class Download(Resource):
