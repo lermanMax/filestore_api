@@ -1,5 +1,6 @@
 import os
 import hashlib
+import tempfile
 
 from flask import Flask, send_from_directory
 from flask_restful import reqparse, abort, Api, Resource
@@ -37,12 +38,11 @@ def abort_if_file_doesnt_exist(path, filehash):
 
 def abort_if_file_exist(path, filehash):
     if os.path.exists(os.path.join(path, filehash)):
-        os.remove(temporary_save) #если файл с таким хэшем уже сохранен, то новый(временный) удаляем  
         abort(409, message="File already exist. It is available by this name: {}".format(filehash))
         
 def delete_if_folder_is_empty(path):
     if not os.listdir(path):
-        os.rmdir(path) #удаление пустой папки
+        os.rmdir(path) #удаление пустого каталога
 
 parser = reqparse.RequestParser()
 parser.add_argument('file', type = FileStorage, location='files')
@@ -52,13 +52,14 @@ parser.add_argument('filehash')
 class Upload(Resource):
     def post(self):
         args = parser.parse_args()
-        args['file'].save(temporary_save) # сохраняем файл
+        with tempfile.NamedTemporaryFile() as file:
+            file.write(args['file'])
+            
+            filehash = hashing_file(file.name)
+            path = main_dir + filehash[0:2] #получаем новый путь. подпапка из перых двух символов хэша  
         
-        filehash = hashing_file(temporary_save)
-        path = main_dir + filehash[0:2] #получаем новый путь. подпапка из перых двух символов хэша  
-        
-        abort_if_file_exist(path, filehash)
-        os.renames(temporary_save, os.path.join(path, filehash)) #меняем имя и путь к файлу 
+            abort_if_file_exist(path, filehash)
+            os.renames(file.name, os.path.join(path, filehash)) #меняем имя и путь к файлу 
         return {'filehash': filehash}, 201
 
 class Download(Resource):
