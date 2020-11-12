@@ -22,9 +22,14 @@ def hashing_file(path, block_size=4096): # Размер кластера по у
     
     return hash_f.hexdigest()
 
-def abort_if_bad_filehash(filehash): # проверка коректности данных (можно добавить проверку, что длина строки=32)
-    if not filehash:
-        abort(400, message="Bad request")        
+def abort_if_bad_filehash(filehash): # проверка коректности данных
+    hexdigits = '0123456789abcdefABCDEF'
+    
+    if (not filehash 
+        or len(filehash) != 32 
+        or not all(s in hexdigits for s in filehash)):
+        
+        abort(400, message="Bad request")  
 
 def abort_if_file_doesnt_exist(path, filehash):
     if not os.path.exists(os.path.join(path, filehash)):
