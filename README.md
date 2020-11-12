@@ -42,7 +42,7 @@ requests.get("http://127.0.0.1:8000/download", {'filehash': '0123456789abcdef012
 #### Response
 content
 ```
-b'<...binary code...>'
+b'<...bytes...>'
 
 ```
 ### :black_medium_square: Delete
