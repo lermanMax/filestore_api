@@ -1,6 +1,4 @@
-## filestore_api  
-
-Демонизация приложения реализованна через gunicorn. Для запуска можно использовать скрипт api_run.sh 
+# filestore_api  
 
 ## Методы
 ### :black_medium_square: Upload
