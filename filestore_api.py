@@ -47,7 +47,7 @@ parser.add_argument('filehash')
 class Upload(Resource):
     def post(self):
         args = parser.parse_args()
-        args['file'].save(temporary_save) #сохраняем файл
+        args['file'].save(temporary_save) # сохраняем файл
         
         filehash = hashing_file(temporary_save)
         path = main_dir + filehash[0:2] #получаем новый путь. подпапка из перых двух символов хэша  
