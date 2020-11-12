@@ -22,57 +22,84 @@ Delete:
 import requests
 
 
-url = "http://127.0.0.1:8000/"
+url = "http://127.0.0.1:5000/"
 
 class filestore_test:
 
     def __init__(self, url_base):
         self.url_base = url_base
         
-    def upload(self, file_path):
+    def upload(self, expected_code, file_path):
         method = 'upload'   
         files = {'file': open(file_path, 'rb')} 
         response = requests.post(self.url_base + method, files=files)
+        
+        result = '❌'
+        if response.status_code == expected_code: result = '✅'
+        
         try:
-            return response, response.json()['filehash']
+            return result, response.status_code, response.json()
         except:
-            return response
+            return result, response.content
 
-    def download(self, filehash):
+
+    def download(self, expected_code, filehash):
         method = 'download'
         params = {'filehash': filehash}
         response = requests.get(self.url_base + method, params=params)
-        try:
-            return response, response.json()
-        except:
-            return response
         
-    def delete(self, filehash):
+        result = '❌'
+        if response.status_code == expected_code: result = '✅'
+        
+        try:
+            return result, response.status_code
+        except:
+            return result, response.content
+        
+        
+    def delete(self, expected_code, filehash):
         method = 'delete'
         params = {'filehash': filehash}
         response = requests.delete(self.url_base + method, params=params)
+        
+        result = '❌'
+        if response.status_code == expected_code: result = '✅'
+        
         try:
-            return response, response.json()
+            return result, response.status_code
         except:
-            return response    
+            return result, response.content    
 
 
 test = filestore_test(url)
 
 
-print('start upload tests')
+
+print('START upload tests')
+print('test01 : ', test.upload(201, 'fileTest.txt'))
+print('test02 : ', test.upload(409, 'fileTest.txt'))
 
 
-print(test.upload('fileTest.txt'))
+print('____________________')
+print('START download tests')
+print('test01 : ', test.download(200, '33bd7853c56d9f4f2c78496822060c83'))
+print('test02 : ', test.download(404, '00000000000000000000000000000000'))
+print('test03 : ', test.download(400, '0000000000000000000000000'))
+print('test04 : ', test.download(400, '../33bd7853c56d9f4f2c78496822060'))
+print('test05 : ', test.download(404, '33BD7853c56d9f4f2c78496822060c83')) # ?? важен ли регистр
+print('test06 : ', test.download(400, ''))
+print('test07 : ', test.download(400, 12345678901234567890123456789012 ))
 
 
-
-print('start download test')
-
-
-
-print('start delete test')
-
+print('____________________')
+print('START delete tests')
+print('test01 : ', test.delete(204, '33bd7853c56d9f4f2c78496822060c83'))
+print('test02 : ', test.delete(404, '00000000000000000000000000000000'))
+print('test03 : ', test.delete(400, '0000000000000000000000000'))
+print('test04 : ', test.delete(400, '../33bd7853c56d9f4f2c78496822060'))
+print('test05 : ', test.delete(404, '33BD7853c56d9f4f2c78496822060c83'))
+print('test06 : ', test.delete(400, ''))
+print('test07 : ', test.delete(400,  12345678901234567890123456789012 ))
 
 
 
